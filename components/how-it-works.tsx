@@ -24,26 +24,30 @@ const steps = [
 
 export function HowItWorks() {
   return (
-    <section className="w-full bg-[#0d0d0d] border-y border-[#1c1c1c] py-20 px-20">
-      <div className="max-w-[1440px] mx-auto flex flex-col items-center gap-14">
+    <section className="w-full bg-[#0d0d0d] border-y border-[#1c1c1c] py-16 md:py-20 px-5 md:px-20">
+      <div className="max-w-[1440px] mx-auto flex flex-col items-center gap-12 md:gap-14">
         {/* Header */}
         <FadeIn className="flex flex-col items-center gap-3 text-center">
           <span className="text-[11px] font-bold tracking-[0.18em] text-[#4d7c6f] uppercase">
             How it works
           </span>
-          <h2 className="text-[40px] font-bold text-[#f0f0f0] leading-tight">
+          <h2 className="text-[32px] md:text-[40px] font-bold text-[#f0f0f0] leading-tight">
             Up and running in minutes.
           </h2>
-          <p className="text-[16px] text-[#6b6b6b] max-w-[520px] leading-relaxed">
+          <p className="text-[15px] md:text-[16px] text-[#888888] max-w-[520px] leading-relaxed">
             No lengthy onboarding. No spreadsheet imports. Just a clean setup
             that gets your team moving.
           </p>
         </FadeIn>
 
         {/* Steps */}
-        <div className="w-full max-w-[1100px] grid grid-cols-3 divide-x divide-[#2a2a2a]">
+        <div className="w-full max-w-[1100px] grid grid-cols-1 md:grid-cols-3 md:divide-x divide-[#2a2a2a] gap-10 md:gap-0">
           {steps.map((step, i) => (
-            <FadeIn key={step.number} delay={i * 0.08} className="px-10 flex flex-col items-center gap-5 text-center">
+            <FadeIn
+              key={step.number}
+              delay={i * 0.08}
+              className="px-0 md:px-10 flex flex-col items-center gap-5 text-center"
+            >
               <div
                 className={`w-12 h-12 rounded-full flex items-center justify-center text-[14px] font-bold font-mono border ${
                   step.highlight
@@ -57,10 +61,14 @@ export function HowItWorks() {
                 <h3 className="text-[18px] font-bold text-[#f0f0f0]">
                   {step.title}
                 </h3>
-                <p className="text-[14px] text-[#6b6b6b] leading-relaxed max-w-[260px]">
+                <p className="text-[14px] text-[#888888] leading-relaxed max-w-[260px]">
                   {step.description}
                 </p>
               </div>
+              {/* Mobile divider between steps */}
+              {i < steps.length - 1 && (
+                <div className="md:hidden w-full h-px bg-[#2a2a2a] mt-2" />
+              )}
             </FadeIn>
           ))}
         </div>
