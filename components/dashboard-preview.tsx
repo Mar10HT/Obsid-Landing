@@ -68,7 +68,7 @@ export function DashboardPreview() {
         const t5 = setTimeout(() => scrollUnlock(),         3300);
         timers.current = [t1, t2, t3, t4, t5];
       },
-      { threshold: 0.99 },
+      { threshold: 0.7 },
     );
 
     observer.observe(el);
@@ -104,7 +104,7 @@ export function DashboardPreview() {
         <FadeIn className="w-full flex justify-center">
           <div ref={mockupRef} className="w-full max-w-[1100px] overflow-x-auto rounded-xl border border-[#2a2a2a]">
             <div
-              className="min-w-[700px] rounded-xl overflow-hidden"
+              className="md:min-w-[700px] rounded-xl overflow-hidden"
               style={{ background: "#141414" }}
               aria-hidden="true"
             >
@@ -119,7 +119,7 @@ export function DashboardPreview() {
                   <span className="text-xs text-[#6b6b6b] ml-2">Inventory / All items</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#242424]">
+                  <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#242424]">
                     <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
                       <circle cx="7" cy="7" r="5" stroke="#6b6b6b" strokeWidth="1.5" />
                       <path d="M11 11L14 14" stroke="#6b6b6b" strokeWidth="1.5" strokeLinecap="round" />
@@ -157,7 +157,7 @@ export function DashboardPreview() {
               {/* Body */}
               <div className="flex">
                 {/* Sidebar */}
-                <div className="w-48 shrink-0 bg-[#0f0f0f] border-r border-[#1c1c1c] p-3 flex flex-col gap-1">
+                <div className="hidden md:flex w-48 shrink-0 bg-[#0f0f0f] border-r border-[#1c1c1c] p-3 flex-col gap-1">
                   <p className="px-3 pt-1 pb-2 text-[9px] font-bold tracking-widest text-[#6b6b6b] uppercase">
                     Workspace
                   </p>
@@ -184,7 +184,7 @@ export function DashboardPreview() {
                 {/* Main */}
                 <div className="flex-1 p-5 flex flex-col gap-4">
                   {/* Stats row */}
-                  <div className="grid grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {[
                       { label: "Total items",      value: totalItems, trend: "↑ 12% this month",  trendColor: "#4ade80", flash: true  },
                       { label: "Low stock alerts", value: "14",       trend: "Requires attention", trendColor: "#6b6b6b", valueColor: "#f87171" },
@@ -218,10 +218,12 @@ export function DashboardPreview() {
                   {/* Table */}
                   <div className="rounded-lg overflow-hidden border border-[#2a2a2a]">
                     {/* Header */}
-                    <div className="grid grid-cols-[2fr_1.5fr_1fr_1.2fr_1fr] bg-[#242424] px-4 h-9 items-center">
-                      {["Item name", "SKU", "Stock", "Warehouse", "Status"].map((h) => (
-                        <span key={h} className="text-[11px] font-semibold text-[#6b6b6b]">{h}</span>
-                      ))}
+                    <div className="grid grid-cols-[1fr_auto_auto] md:grid-cols-[2fr_1.5fr_1fr_1.2fr_1fr] bg-[#242424] px-4 h-9 items-center">
+                      <span className="text-[11px] font-semibold text-[#6b6b6b]">Item name</span>
+                      <span className="hidden md:block text-[11px] font-semibold text-[#6b6b6b]">SKU</span>
+                      <span className="text-[11px] font-semibold text-[#6b6b6b]">Stock</span>
+                      <span className="hidden md:block text-[11px] font-semibold text-[#6b6b6b]">Warehouse</span>
+                      <span className="text-[11px] font-semibold text-[#6b6b6b] text-right md:text-left">Status</span>
                     </div>
 
                     {/* Static rows */}
@@ -230,16 +232,16 @@ export function DashboardPreview() {
                       return (
                         <div
                           key={item.sku}
-                          className="grid grid-cols-[2fr_1.5fr_1fr_1.2fr_1fr] px-4 h-10 items-center border-t border-[#2a2a2a] hover:bg-[#1a1a1a] transition-colors"
+                          className="grid grid-cols-[1fr_auto_auto] md:grid-cols-[2fr_1.5fr_1fr_1.2fr_1fr] px-4 h-10 items-center border-t border-[#2a2a2a] hover:bg-[#1a1a1a] transition-colors"
                         >
-                          <span className="text-[12px] text-[#f0f0f0]">{item.name}</span>
-                          <span className="font-mono text-[11px] text-[#a0a0a0]">{item.sku}</span>
-                          <span className="font-mono text-[12px] font-bold" style={{ color: stockColor(item.stock) }}>
+                          <span className="text-[12px] text-[#f0f0f0] truncate min-w-0 pr-2">{item.name}</span>
+                          <span className="hidden md:block font-mono text-[11px] text-[#a0a0a0]">{item.sku}</span>
+                          <span className="font-mono text-[12px] font-bold px-2 md:px-0" style={{ color: stockColor(item.stock) }}>
                             {item.stock}
                           </span>
-                          <span className="text-[12px] text-[#a0a0a0]">{item.warehouse}</span>
+                          <span className="hidden md:block text-[12px] text-[#a0a0a0]">{item.warehouse}</span>
                           <span
-                            className="inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-medium w-fit"
+                            className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-medium w-fit"
                             style={{ color: st.color, background: st.bg }}
                           >
                             {st.label}
@@ -259,7 +261,7 @@ export function DashboardPreview() {
                           transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
                         >
                           <motion.div
-                            className="grid grid-cols-[2fr_1.5fr_1fr_1.2fr_1fr] px-4 h-10 items-center"
+                            className="grid grid-cols-[1fr_auto_auto] md:grid-cols-[2fr_1.5fr_1fr_1.2fr_1fr] px-4 h-10 items-center"
                             initial={{ opacity: 0, y: 10, backgroundColor: "rgba(77,124,111,0.38)" }}
                             animate={{
                               opacity: 1,
@@ -275,14 +277,14 @@ export function DashboardPreview() {
                               backgroundColor: { duration: 1.8 },
                             }}
                           >
-                            <span className="text-[12px] text-[#f0f0f0]">{newItem.name}</span>
-                            <span className="font-mono text-[11px] text-[#a0a0a0]">{newItem.sku}</span>
-                            <span className="font-mono text-[12px] font-bold" style={{ color: stockColor(newItem.stock) }}>
+                            <span className="text-[12px] text-[#f0f0f0] truncate min-w-0 pr-2">{newItem.name}</span>
+                            <span className="hidden md:block font-mono text-[11px] text-[#a0a0a0]">{newItem.sku}</span>
+                            <span className="font-mono text-[12px] font-bold px-2 md:px-0" style={{ color: stockColor(newItem.stock) }}>
                               {newItem.stock}
                             </span>
-                            <span className="text-[12px] text-[#a0a0a0]">{newItem.warehouse}</span>
+                            <span className="hidden md:block text-[12px] text-[#a0a0a0]">{newItem.warehouse}</span>
                             <span
-                              className="inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-medium w-fit"
+                              className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-medium w-fit"
                               style={{ color: s.color, background: s.bg }}
                             >
                               {s.label}
