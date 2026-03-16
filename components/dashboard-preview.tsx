@@ -1,6 +1,7 @@
 "use client";
 import { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Package, TriangleAlert, ClipboardList, Warehouse, Search } from "lucide-react";
 import { FadeIn } from "./fade-in";
 
 const tableItems = [
@@ -30,12 +31,37 @@ const stockColor = (n: number) => n === 0 ? "#f87171" : n <= 5 ? "#fbbf24" : "#f
 
 type Phase = "idle" | "pulse-btn" | "add-row" | "counter-flash" | "done";
 
-function scrollLock() {
-  document.documentElement.style.overflow = "hidden";
-}
+function scrollLock()   { document.documentElement.style.overflow = "hidden"; }
+function scrollUnlock() { document.documentElement.style.overflow = ""; }
 
-function scrollUnlock() {
-  document.documentElement.style.overflow = "";
+const sidebarItems = [
+  { Icon: Package,      label: "Inventory", active: true  },
+  { Icon: ArrowLeftRight, label: "Transfers", active: false },
+  { Icon: Link2,        label: "Loans",     active: false },
+  { Icon: BarChart3,    label: "Reports",   active: false },
+];
+
+// Inline icon components to avoid extra imports for minor icons
+function ArrowLeftRight({ size = 14, color = "currentColor" }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/>
+    </svg>
+  );
+}
+function Link2({ size = 14, color = "currentColor" }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><line x1="8" y1="12" x2="16" y2="12"/>
+    </svg>
+  );
+}
+function BarChart3({ size = 14, color = "currentColor" }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>
+    </svg>
+  );
 }
 
 export function DashboardPreview() {
@@ -56,19 +82,20 @@ export function DashboardPreview() {
         didAnimate.current = true;
         observer.disconnect();
 
-        scrollLock();
+        // Scroll mockup to center before locking, then animate
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
 
-        const t1 = setTimeout(() => setPhase("pulse-btn"),  500);
-        const t2 = setTimeout(() => setPhase("add-row"),    1100);
+        const t1 = setTimeout(() => { scrollLock(); setPhase("pulse-btn"); }, 700);
+        const t2 = setTimeout(() => setPhase("add-row"),    1300);
         const t3 = setTimeout(() => {
           setPhase("counter-flash");
           setTotalItems("2,848");
-        }, 2300);
-        const t4 = setTimeout(() => setPhase("done"),       3000);
-        const t5 = setTimeout(() => scrollUnlock(),         3300);
+        }, 2500);
+        const t4 = setTimeout(() => setPhase("done"),       3200);
+        const t5 = setTimeout(() => scrollUnlock(),         3500);
         timers.current = [t1, t2, t3, t4, t5];
       },
-      { threshold: 0.7 },
+      { threshold: 0.4 },
     );
 
     observer.observe(el);
@@ -83,8 +110,35 @@ export function DashboardPreview() {
   const showRow = phase === "add-row" || phase === "counter-flash" || phase === "done";
   const s = statusConfig[newItem.status];
 
+  const stats = [
+    {
+      label: "Total items",      value: totalItems,  trend: "↑ 12% this month",
+      trendColor: "#10b981",    valueColor: "#cbd5e1",
+      iconBg: "rgba(77,124,111,0.12)", flash: true,
+      icon: <Package size={15} color="#4d7c6f" />,
+    },
+    {
+      label: "Low stock alerts", value: "14",         trend: "Requires attention",
+      trendColor: "#64748b",    valueColor: "#f59e0b",
+      iconBg: "rgba(245,158,11,0.12)", flash: false,
+      icon: <TriangleAlert size={15} color="#f59e0b" />,
+    },
+    {
+      label: "Active loans",     value: "38",         trend: "6 due this week",
+      trendColor: "#64748b",    valueColor: "#60a5fa",
+      iconBg: "rgba(96,165,250,0.12)", flash: false,
+      icon: <ClipboardList size={15} color="#60a5fa" />,
+    },
+    {
+      label: "Warehouses",       value: "5",          trend: "All operational",
+      trendColor: "#10b981",    valueColor: "#34d399",
+      iconBg: "rgba(52,211,153,0.12)", flash: false,
+      icon: <Warehouse size={15} color="#34d399" />,
+    },
+  ];
+
   return (
-    <section className="w-full px-5 md:px-20 pb-16 md:pb-20">
+    <section className="w-full px-5 md:px-20 pt-16 md:pt-20 pb-16 md:pb-20">
       <div className="max-w-[1440px] mx-auto flex flex-col items-center gap-10">
 
         {/* Section header */}
@@ -109,7 +163,7 @@ export function DashboardPreview() {
               aria-hidden="true"
             >
               {/* Window chrome */}
-              <div className="flex items-center justify-between px-5 h-12 bg-[#1c1c1c] border-b border-[#2a2a2a]">
+              <div className="flex items-center justify-between px-5 h-12 bg-[#111111] border-b border-[#2a2a2a]">
                 <div className="flex items-center gap-3">
                   <div className="flex gap-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-[#f87171]" />
@@ -120,10 +174,7 @@ export function DashboardPreview() {
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#242424]">
-                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                      <circle cx="7" cy="7" r="5" stroke="#6b6b6b" strokeWidth="1.5" />
-                      <path d="M11 11L14 14" stroke="#6b6b6b" strokeWidth="1.5" strokeLinecap="round" />
-                    </svg>
+                    <Search size={11} color="#6b6b6b" />
                     <span className="text-xs text-[#6b6b6b]">Search items...</span>
                   </div>
 
@@ -157,26 +208,19 @@ export function DashboardPreview() {
               {/* Body */}
               <div className="flex">
                 {/* Sidebar */}
-                <div className="hidden md:flex w-48 shrink-0 bg-[#0f0f0f] border-r border-[#1c1c1c] p-3 flex-col gap-1">
+                <div className="hidden md:flex w-48 shrink-0 bg-[#0a0a0a] border-r border-[#2a2a2a] p-3 flex-col gap-1">
                   <p className="px-3 pt-1 pb-2 text-[9px] font-bold tracking-widest text-[#6b6b6b] uppercase">
                     Workspace
                   </p>
-                  {[
-                    { icon: "📦", label: "Inventory", active: true  },
-                    { icon: "↔",  label: "Transfers", active: false },
-                    { icon: "🔗", label: "Loans",     active: false },
-                    { icon: "📊", label: "Reports",   active: false },
-                  ].map((item) => (
+                  {sidebarItems.map(({ Icon, label, active }) => (
                     <div
-                      key={item.label}
+                      key={label}
                       className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium ${
-                        item.active ? "bg-[#242424] text-[#f0f0f0]" : "text-[#6b6b6b]"
+                        active ? "bg-[#242424] text-[#f0f0f0]" : "text-[#6b6b6b]"
                       }`}
                     >
-                      <span className={item.active ? "text-[#4d7c6f]" : ""} aria-hidden="true">
-                        {item.icon}
-                      </span>
-                      {item.label}
+                      <Icon size={14} color={active ? "#4d7c6f" : "#6b6b6b"} />
+                      {label}
                     </div>
                   ))}
                 </div>
@@ -185,39 +229,35 @@ export function DashboardPreview() {
                 <div className="flex-1 p-5 flex flex-col gap-4">
                   {/* Stats row */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {[
-                      { label: "Total items",      value: totalItems, trend: "↑ 12% this month",  trendColor: "#4ade80", flash: true  },
-                      { label: "Low stock alerts", value: "14",       trend: "Requires attention", trendColor: "#6b6b6b", valueColor: "#f87171" },
-                      { label: "Active loans",     value: "38",       trend: "6 due this week",   trendColor: "#6b6b6b", valueColor: "#60a5fa" },
-                      { label: "Warehouses",       value: "5",        trend: "All operational",   trendColor: "#4ade80" },
-                    ].map((stat) => (
+                    {stats.map((stat) => (
                       <motion.div
-                        key={stat.label + stat.value}
-                        className="p-3.5 rounded-lg border border-[#2a2a2a] flex flex-col gap-1"
+                        key={stat.label}
+                        className="p-3.5 rounded-lg border border-[#2a2a2a] flex flex-col gap-2"
                         animate={
                           stat.flash && phase === "counter-flash"
-                            ? { backgroundColor: ["rgba(77,124,111,0.3)", "rgba(77,124,111,0)"] }
-                            : { backgroundColor: "rgba(28,28,28,1)" }
+                            ? { backgroundColor: ["rgba(77,124,111,0.3)", "rgba(26,26,26,1)"] }
+                            : { backgroundColor: "rgba(26,26,26,1)" }
                         }
                         transition={{ duration: 1.4 }}
                       >
-                        <span className="text-[11px] text-[#6b6b6b]">{stat.label}</span>
-                        <span
-                          className="font-mono text-[22px] font-bold leading-none"
-                          style={{ color: stat.valueColor ?? "#f0f0f0" }}
-                        >
-                          {stat.value}
-                        </span>
-                        <span className="text-[11px]" style={{ color: stat.trendColor }}>
-                          {stat.trend}
-                        </span>
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex flex-col gap-1">
+                            <span className="text-[11px] text-[#94a3b8]">{stat.label}</span>
+                            <span className="font-mono text-[20px] font-bold leading-none" style={{ color: stat.valueColor }}>
+                              {stat.value}
+                            </span>
+                          </div>
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: stat.iconBg }}>
+                            {stat.icon}
+                          </div>
+                        </div>
+                        <span className="text-[11px]" style={{ color: stat.trendColor }}>{stat.trend}</span>
                       </motion.div>
                     ))}
                   </div>
 
                   {/* Table */}
                   <div className="rounded-lg overflow-hidden border border-[#2a2a2a]">
-                    {/* Header */}
                     <div className="grid grid-cols-[1fr_auto_auto] md:grid-cols-[2fr_1.5fr_1fr_1.2fr_1fr] bg-[#242424] px-4 h-9 items-center">
                       <span className="text-[11px] font-semibold text-[#6b6b6b]">Item name</span>
                       <span className="hidden md:block text-[11px] font-semibold text-[#6b6b6b]">SKU</span>
@@ -226,7 +266,6 @@ export function DashboardPreview() {
                       <span className="text-[11px] font-semibold text-[#6b6b6b] text-right md:text-left">Status</span>
                     </div>
 
-                    {/* Static rows */}
                     {tableItems.map((item) => {
                       const st = statusConfig[item.status as keyof typeof statusConfig];
                       return (

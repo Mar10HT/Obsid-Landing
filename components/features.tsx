@@ -84,7 +84,7 @@ export function Features() {
               </div>
               <div className="flex items-center gap-2 mt-4 md:mt-0">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#60a5fa]" />
-                <span className="text-[12px] text-[#888888]">5 warehouses supported</span>
+                <span className="text-[12px] text-[#888888]">Unlimited warehouses on Pro</span>
               </div>
             </div>
           </FadeIn>
