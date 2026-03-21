@@ -1,7 +1,59 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import { ObsidLogo } from "./obsid-logo";
+
+const CHANGELOG_ENTRIES = [
+  { version: "v2.1", label: "Stock Takes launched" },
+  { version: "v2.0", label: "Multi-warehouse support" },
+  { version: "v1.9", label: "Loan QR codes" },
+];
+
+function ChangelogBadge() {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setIndex((i) => (i + 1) % CHANGELOG_ENTRIES.length);
+    }, 4000);
+    return () => clearInterval(t);
+  }, []);
+
+  const entry = CHANGELOG_ENTRIES[index];
+
+  return (
+    <Link
+      href="/changelog"
+      className="hidden lg:flex items-center gap-2 px-3 py-1 rounded-full border border-[#2a3d38] bg-[#4d7c6f]/10 hover:bg-[#4d7c6f]/20 transition-colors group overflow-hidden"
+      aria-label={`Changelog: ${entry.version} — ${entry.label}`}
+    >
+      <span className="w-1.5 h-1.5 rounded-full bg-[#4d7c6f] shrink-0 animate-pulse" />
+      <div className="relative h-4 overflow-hidden w-[180px]">
+        <AnimatePresence mode="wait">
+          <motion.span
+            key={index}
+            initial={{ y: 12, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -12, opacity: 0 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="absolute inset-0 flex items-center"
+          >
+            <span className="text-[11px] font-mono text-[#4d7c6f] font-semibold mr-1.5">
+              {entry.version}
+            </span>
+            <span className="text-[11px] text-[#707070] truncate">
+              — {entry.label}
+            </span>
+          </motion.span>
+        </AnimatePresence>
+      </div>
+      <span className="text-[#505050] group-hover:text-[#4d7c6f] transition-colors text-[11px]">
+        →
+      </span>
+    </Link>
+  );
+}
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -23,13 +75,16 @@ export function Navbar() {
       }`}
     >
       <div className="max-w-[1440px] mx-auto px-5 md:px-20 h-16 flex items-center justify-between">
-        {/* Logo */}
-        <Link href="/" aria-label="Obsid home" className="flex items-center gap-2.5">
-          <ObsidLogo size={26} />
-          <span className="font-mono text-[#f0f0f0] font-bold text-[17px] tracking-[0.16em]">
-            Obsid
-          </span>
-        </Link>
+        {/* Logo + changelog badge */}
+        <div className="flex items-center gap-4">
+          <Link href="/" aria-label="Obsid home" className="flex items-center gap-2.5">
+            <ObsidLogo size={26} />
+            <span className="font-mono text-[#f0f0f0] font-bold text-[17px] tracking-[0.16em]">
+              Obsid
+            </span>
+          </Link>
+          <ChangelogBadge />
+        </div>
 
         {/* Nav links — desktop */}
         <div className="hidden md:flex items-center gap-10">

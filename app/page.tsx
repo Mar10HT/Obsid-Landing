@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/navbar";
 import { Hero } from "@/components/hero";
+import { TrustedBy } from "@/components/trusted-by";
 import { StatsBar } from "@/components/stats-bar";
 import { DashboardPreview } from "@/components/dashboard-preview";
 import { HowItWorks } from "@/components/how-it-works";
@@ -16,6 +17,7 @@ export default function Home() {
     <main className="min-h-screen bg-[#0a0a0a] overflow-x-hidden">
       <Navbar />
       <Hero />
+      <TrustedBy />
       <StatsBar />
       <DashboardPreview />
       <HowItWorks />
