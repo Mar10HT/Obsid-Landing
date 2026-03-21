@@ -1,5 +1,3 @@
-"use client";
-import { motion } from "framer-motion";
 import {
   ShoppingCart,
   HeartPulse,
@@ -22,9 +20,6 @@ const INDUSTRIES = [
   { icon: Wrench, label: "Field Services" },
 ];
 
-// Duplicated for seamless loop
-const ITEMS = [...INDUSTRIES, ...INDUSTRIES];
-
 export function TrustedBy() {
   return (
     <section className="py-12 border-y border-[#1c1c1c] overflow-hidden">
@@ -41,31 +36,20 @@ export function TrustedBy() {
         {/* Right fade */}
         <div className="absolute right-0 top-0 bottom-0 w-24 z-10 pointer-events-none bg-gradient-to-l from-[#0a0a0a] to-transparent" />
 
-        <motion.div
-          className="flex gap-12 w-max"
-          animate={{ x: ["0%", "-50%"] }}
-          transition={{
-            duration: 30,
-            ease: "linear",
-            repeat: Infinity,
-          }}
-        >
-          {ITEMS.map(({ icon: Icon, label }, i) => (
+        {/* Track: duplicated set so -50% lands exactly back at start */}
+        <div className="marquee-track flex gap-8 w-max">
+          {[...INDUSTRIES, ...INDUSTRIES].map(({ icon: Icon, label }, i) => (
             <div
               key={`${label}-${i}`}
               className="flex items-center gap-3 px-6 py-3 rounded-xl border border-[#1c1c1c] bg-[#111111] shrink-0 select-none"
             >
-              <Icon
-                size={18}
-                className="text-[#4d7c6f] shrink-0"
-                strokeWidth={1.5}
-              />
+              <Icon size={18} className="text-[#4d7c6f] shrink-0" strokeWidth={1.5} />
               <span className="text-sm font-medium text-[#707070] whitespace-nowrap">
                 {label}
               </span>
             </div>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   );

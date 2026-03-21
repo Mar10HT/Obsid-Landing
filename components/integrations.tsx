@@ -46,16 +46,7 @@ function MarqueeRow({ items, reverse }: { items: Pill[]; reverse?: boolean }) {
   const doubled = [...items, ...items];
   return (
     <div className="w-full overflow-hidden" style={{ maskImage: "linear-gradient(to right, transparent, black 210px, black calc(100% - 210px), transparent)" }}>
-      <div
-        className="flex gap-3 w-max"
-        style={{
-          animationName: "marquee",
-          animationDuration: "35s",
-          animationTimingFunction: "linear",
-          animationIterationCount: "infinite",
-          animationDirection: reverse ? "reverse" : "normal",
-        }}
-      >
+      <div className={`flex gap-3 w-max ${reverse ? "marquee-row-reverse" : "marquee-row"}`}>
         {doubled.map((item, i) => (
           <Pill key={i} label={item.label} Icon={item.Icon} />
         ))}
