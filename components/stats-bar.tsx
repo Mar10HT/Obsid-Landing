@@ -1,22 +1,22 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { useInView } from "framer-motion";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 type StatConfig = {
   label: string;
-  // numeric value to animate to
   target: number;
-  // how to format the final animated number into a display string
   format: (n: number) => string;
 };
 
 const statConfigs: StatConfig[] = [
-  { label: "warehouse teams",  target: 340,  format: (n) => `${Math.round(n)}+`     },
-  { label: "items tracked daily", target: 50, format: (n) => `${Math.round(n)}K+`   },
-  { label: "uptime SLA",       target: 99.9, format: (n) => `${n.toFixed(1)}%`      },
+  { label: "warehouse teams",     target: 340,  format: (n) => `${Math.round(n)}+`   },
+  { label: "items tracked daily", target: 50,   format: (n) => `${Math.round(n)}K+`  },
+  { label: "uptime SLA",          target: 99.9, format: (n) => `${n.toFixed(1)}%`    },
 ];
 
-// "EN / ES" is static — no count-up makes sense
 const staticStat = { value: "EN / ES", label: "fully bilingual" };
 
 function AnimatedNumber({ target, format, duration = 1200 }: {
@@ -26,20 +26,38 @@ function AnimatedNumber({ target, format, duration = 1200 }: {
 }) {
   const [display, setDisplay] = useState(format(0));
   const ref = useRef<HTMLSpanElement>(null);
-  const isInView = useInView(ref, { once: true });
+  const hasAnimated = useRef(false);
 
   useEffect(() => {
-    if (!isInView) return;
-    const start = performance.now();
-    const step = (ts: number) => {
-      const progress = Math.min((ts - start) / duration, 1);
-      // ease-out-cubic
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplay(format(eased * target));
-      if (progress < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }, [isInView, target, format, duration]);
+    const el = ref.current;
+    if (!el) return;
+
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) {
+      setDisplay(format(target));
+      return;
+    }
+
+    const trigger = ScrollTrigger.create({
+      trigger: el,
+      start: "top bottom",
+      once: true,
+      onEnter: () => {
+        if (hasAnimated.current) return;
+        hasAnimated.current = true;
+        const start = performance.now();
+        const step = (ts: number) => {
+          const progress = Math.min((ts - start) / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          setDisplay(format(eased * target));
+          if (progress < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      },
+    });
+
+    return () => trigger.kill();
+  }, [target, format, duration]);
 
   return <span ref={ref}>{display}</span>;
 }
@@ -68,7 +86,6 @@ export function StatsBar() {
           </div>
         ))}
 
-        {/* Static bilingual stat */}
         <div className="flex items-center justify-center md:justify-start py-4 md:py-0">
           <div className="hidden md:block w-px h-9 bg-[#2a2a2a] mx-10" />
           <div className="flex items-center gap-3">

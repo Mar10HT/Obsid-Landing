@@ -1,7 +1,7 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { gsap } from "gsap";
 import { ObsidLogo } from "./obsid-logo";
 
 const CHANGELOG_ENTRIES = [
@@ -12,7 +12,44 @@ const CHANGELOG_ENTRIES = [
 
 function ChangelogBadge() {
   const [index, setIndex] = useState(0);
+  const prevIndex = useRef(0);
+  const spansRef = useRef<(HTMLSpanElement | null)[]>([]);
 
+  // Initialize: show only index 0
+  useEffect(() => {
+    spansRef.current.forEach((el, i) => {
+      if (!el) return;
+      gsap.set(el, { opacity: i === 0 ? 1 : 0, y: i === 0 ? 0 : 12 });
+    });
+  }, []);
+
+  // Animate on index change
+  useEffect(() => {
+    const prev = prevIndex.current;
+    const next = index;
+    if (prev === next) return;
+
+    const prevEl = spansRef.current[prev];
+    const nextEl = spansRef.current[next];
+    if (!prevEl || !nextEl) return;
+
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) {
+      gsap.set(prevEl, { opacity: 0 });
+      gsap.set(nextEl, { opacity: 1, y: 0 });
+    } else {
+      gsap.to(prevEl, { opacity: 0, y: -12, duration: 0.25, ease: "power1.in" });
+      gsap.fromTo(
+        nextEl,
+        { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 0.25, ease: "power1.out", delay: 0.05 }
+      );
+    }
+
+    prevIndex.current = next;
+  }, [index]);
+
+  // Auto-cycle every 4s
   useEffect(() => {
     const t = setInterval(() => {
       setIndex((i) => (i + 1) % CHANGELOG_ENTRIES.length);
@@ -30,23 +67,21 @@ function ChangelogBadge() {
     >
       <span className="w-1.5 h-1.5 rounded-full bg-[#4d7c6f] shrink-0 animate-pulse" />
       <div className="relative h-4 overflow-hidden w-[180px]">
-        <AnimatePresence mode="wait">
-          <motion.span
-            key={index}
-            initial={{ y: 12, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -12, opacity: 0 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
+        {CHANGELOG_ENTRIES.map((e, i) => (
+          <span
+            key={i}
+            ref={(el) => { spansRef.current[i] = el; }}
             className="absolute inset-0 flex items-center"
+            style={{ opacity: 0 }}
           >
             <span className="text-[11px] font-mono text-[#4d7c6f] font-semibold mr-1.5">
-              {entry.version}
+              {e.version}
             </span>
             <span className="text-[11px] text-[#707070] truncate">
-              — {entry.label}
+              — {e.label}
             </span>
-          </motion.span>
-        </AnimatePresence>
+          </span>
+        ))}
       </div>
       <span className="text-[#505050] group-hover:text-[#4d7c6f] transition-colors text-[11px]">
         →
@@ -114,7 +149,6 @@ export function Navbar() {
             Get started
           </Link>
 
-          {/* Hamburger button */}
           <button
             type="button"
             aria-label={menuOpen ? "Close menu" : "Open menu"}
@@ -122,21 +156,9 @@ export function Navbar() {
             onClick={() => setMenuOpen((v) => !v)}
             className="md:hidden flex flex-col justify-center gap-[5px] p-1.5 -mr-1"
           >
-            <span
-              className={`block w-5 h-0.5 bg-[#f0f0f0] transition-all duration-200 origin-center ${
-                menuOpen ? "rotate-45 translate-y-[7px]" : ""
-              }`}
-            />
-            <span
-              className={`block w-5 h-0.5 bg-[#f0f0f0] transition-all duration-200 ${
-                menuOpen ? "opacity-0 scale-x-0" : ""
-              }`}
-            />
-            <span
-              className={`block w-5 h-0.5 bg-[#f0f0f0] transition-all duration-200 origin-center ${
-                menuOpen ? "-rotate-45 -translate-y-[7px]" : ""
-              }`}
-            />
+            <span className={`block w-5 h-0.5 bg-[#f0f0f0] transition-all duration-200 origin-center ${menuOpen ? "rotate-45 translate-y-[7px]" : ""}`} />
+            <span className={`block w-5 h-0.5 bg-[#f0f0f0] transition-all duration-200 ${menuOpen ? "opacity-0 scale-x-0" : ""}`} />
+            <span className={`block w-5 h-0.5 bg-[#f0f0f0] transition-all duration-200 origin-center ${menuOpen ? "-rotate-45 -translate-y-[7px]" : ""}`} />
           </button>
         </div>
       </div>
@@ -148,35 +170,11 @@ export function Navbar() {
         }`}
       >
         <div className="px-5 py-6 flex flex-col gap-5">
-          <Link
-            href="#features"
-            onClick={() => setMenuOpen(false)}
-            className="text-base text-[#a0a0a0] hover:text-[#f0f0f0] transition-colors"
-          >
-            Features
-          </Link>
-          <Link
-            href="#pricing"
-            onClick={() => setMenuOpen(false)}
-            className="text-base text-[#a0a0a0] hover:text-[#f0f0f0] transition-colors"
-          >
-            Pricing
-          </Link>
-          <Link
-            href="#"
-            onClick={() => setMenuOpen(false)}
-            className="text-base text-[#a0a0a0] hover:text-[#f0f0f0] transition-colors"
-          >
-            About
-          </Link>
+          <Link href="#features" onClick={() => setMenuOpen(false)} className="text-base text-[#a0a0a0] hover:text-[#f0f0f0] transition-colors">Features</Link>
+          <Link href="#pricing"  onClick={() => setMenuOpen(false)} className="text-base text-[#a0a0a0] hover:text-[#f0f0f0] transition-colors">Pricing</Link>
+          <Link href="#"         onClick={() => setMenuOpen(false)} className="text-base text-[#a0a0a0] hover:text-[#f0f0f0] transition-colors">About</Link>
           <div className="h-px bg-[#1c1c1c]" />
-          <Link
-            href="#"
-            onClick={() => setMenuOpen(false)}
-            className="text-base text-[#a0a0a0] hover:text-[#f0f0f0] transition-colors"
-          >
-            Log in
-          </Link>
+          <Link href="#"         onClick={() => setMenuOpen(false)} className="text-base text-[#a0a0a0] hover:text-[#f0f0f0] transition-colors">Log in</Link>
           <Link
             href="#"
             onClick={() => setMenuOpen(false)}

@@ -1,8 +1,11 @@
 "use client";
-import { useRef, useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useRef, useEffect } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Package, TriangleAlert, ClipboardList, Warehouse, Search } from "lucide-react";
 import { FadeIn } from "./fade-in";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const tableItems = [
   { name: "Laptop Dell XPS 15",   sku: "DELL-XPS-001", stock: 24, warehouse: "Main HQ",    status: "in-stock"     },
@@ -29,19 +32,13 @@ const statusConfig = {
 
 const stockColor = (n: number) => n === 0 ? "#f87171" : n <= 5 ? "#fbbf24" : "#f0f0f0";
 
-type Phase = "idle" | "pulse-btn" | "add-row" | "counter-flash" | "done";
-
-function scrollLock()   { document.documentElement.style.overflow = "hidden"; }
-function scrollUnlock() { document.documentElement.style.overflow = ""; }
-
 const sidebarItems = [
-  { Icon: Package,      label: "Inventory", active: true  },
+  { Icon: Package,        label: "Inventory", active: true  },
   { Icon: ArrowLeftRight, label: "Transfers", active: false },
-  { Icon: Link2,        label: "Loans",     active: false },
-  { Icon: BarChart3,    label: "Reports",   active: false },
+  { Icon: Link2,          label: "Loans",     active: false },
+  { Icon: BarChart3,      label: "Reports",   active: false },
 ];
 
-// Inline icon components to avoid extra imports for minor icons
 function ArrowLeftRight({ size = 14, color = "currentColor" }: { size?: number; color?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -65,83 +62,100 @@ function BarChart3({ size = 14, color = "currentColor" }: { size?: number; color
 }
 
 export function DashboardPreview() {
-  const mockupRef  = useRef<HTMLDivElement>(null);
-  const didAnimate = useRef(false);
-  const timers     = useRef<ReturnType<typeof setTimeout>[]>([]);
-
-  const [phase,      setPhase]      = useState<Phase>("idle");
-  const [totalItems, setTotalItems] = useState("2,847");
+  const sectionRef     = useRef<HTMLElement>(null);
+  const btnRef         = useRef<HTMLButtonElement>(null);
+  const newRowRef      = useRef<HTMLDivElement>(null);
+  const newRowInnerRef = useRef<HTMLDivElement>(null);
+  const flashCardRef   = useRef<HTMLDivElement>(null);
+  const totalItemsRef  = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
-    const el = mockupRef.current;
-    if (!el) return;
+    const section   = sectionRef.current;
+    const btn       = btnRef.current;
+    const newRow    = newRowRef.current;
+    const newRowIn  = newRowInnerRef.current;
+    const flashCard = flashCardRef.current;
+    if (!section || !btn || !newRow || !newRowIn || !flashCard) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (!entries[0].isIntersecting || didAnimate.current) return;
-        didAnimate.current = true;
-        observer.disconnect();
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) {
+      gsap.set(newRow,   { height: 40 });
+      gsap.set(newRowIn, { opacity: 1, y: 0 });
+      if (totalItemsRef.current) totalItemsRef.current.textContent = "2,848";
+      return;
+    }
 
-        // Scroll mockup to center before locking, then animate
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
+    // Initial states
+    gsap.set(newRow,   { height: 0, overflow: "hidden" });
+    gsap.set(newRowIn, { opacity: 0, y: 10, backgroundColor: "rgba(77,124,111,0)" });
 
-        const t1 = setTimeout(() => { scrollLock(); setPhase("pulse-btn"); }, 700);
-        const t2 = setTimeout(() => setPhase("add-row"),    1300);
-        const t3 = setTimeout(() => {
-          setPhase("counter-flash");
-          setTotalItems("2,848");
-        }, 2500);
-        const t4 = setTimeout(() => setPhase("done"),       3200);
-        const t5 = setTimeout(() => scrollUnlock(),         3500);
-        timers.current = [t1, t2, t3, t4, t5];
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: section,
+        pin: true,
+        scrub: 1.5,
+        start: "top top",
+        end: "+=750",
+        onUpdate: (self) => {
+          // Update counter text imperatively to avoid re-renders on every scroll tick
+          if (totalItemsRef.current) {
+            totalItemsRef.current.textContent = self.progress > 0.62 ? "2,848" : "2,847";
+          }
+        },
       },
-      { threshold: 0.4 },
-    );
+    });
 
-    observer.observe(el);
+    // Phase 1 (0–28%): Button pulse — click feel
+    tl.to(btn, { scale: 1.13, boxShadow: "0 0 22px rgba(77,124,111,0.75)", duration: 0.5, ease: "power2.out" })
+      .to(btn, { scale: 1,    boxShadow: "0 0 0px rgba(77,124,111,0)",    duration: 0.5, ease: "power2.inOut" });
 
-    return () => {
-      observer.disconnect();
-      timers.current.forEach(clearTimeout);
-      scrollUnlock();
-    };
+    // Phase 2 (28–62%): New row slides in with green highlight
+    tl.to(newRow,   { height: 40, duration: 1, ease: "power3.out" },                         "+=0.3")
+      .to(newRowIn, { opacity: 1, y: 0, duration: 1, ease: "power3.out" },                   "<")
+      .to(newRowIn, { backgroundColor: "rgba(77,124,111,0.35)", duration: 0.4 },             "<+0.15");
+
+    // Phase 3 (62–100%): Counter flash + green row fades away
+    tl.to(flashCard, { backgroundColor: "rgba(77,124,111,0.25)", duration: 0.4 },            "+=0.4")
+      .to(flashCard, { backgroundColor: "rgba(26,26,26,1)", duration: 1.2 })
+      .to(newRowIn,  { backgroundColor: "rgba(77,124,111,0)", duration: 1.4 },               "<+0.1");
+
+    return () => { tl.scrollTrigger?.kill(); tl.kill(); };
   }, []);
 
-  const showRow = phase === "add-row" || phase === "counter-flash" || phase === "done";
   const s = statusConfig[newItem.status];
 
   const stats = [
     {
-      label: "Total items",      value: totalItems,  trend: "↑ 12% this month",
-      trendColor: "#10b981",    valueColor: "#cbd5e1",
+      label: "Total items",      trend: "↑ 12% this month",
+      trendColor: "#10b981",     valueColor: "#cbd5e1",
       iconBg: "rgba(77,124,111,0.12)", flash: true,
       icon: <Package size={15} color="#4d7c6f" />,
+      value: "2,847",
     },
     {
-      label: "Low stock alerts", value: "14",         trend: "Requires attention",
-      trendColor: "#64748b",    valueColor: "#f59e0b",
+      label: "Low stock alerts", value: "14",  trend: "Requires attention",
+      trendColor: "#64748b",     valueColor: "#f59e0b",
       iconBg: "rgba(245,158,11,0.12)", flash: false,
       icon: <TriangleAlert size={15} color="#f59e0b" />,
     },
     {
-      label: "Active loans",     value: "38",         trend: "6 due this week",
-      trendColor: "#64748b",    valueColor: "#60a5fa",
+      label: "Active loans",     value: "38",  trend: "6 due this week",
+      trendColor: "#64748b",     valueColor: "#60a5fa",
       iconBg: "rgba(96,165,250,0.12)", flash: false,
       icon: <ClipboardList size={15} color="#60a5fa" />,
     },
     {
-      label: "Warehouses",       value: "5",          trend: "All operational",
-      trendColor: "#10b981",    valueColor: "#34d399",
+      label: "Warehouses",       value: "5",   trend: "All operational",
+      trendColor: "#10b981",     valueColor: "#34d399",
       iconBg: "rgba(52,211,153,0.12)", flash: false,
       icon: <Warehouse size={15} color="#34d399" />,
     },
-  ];
+  ] as const;
 
   return (
-    <section className="w-full px-5 md:px-20 pt-16 md:pt-20 pb-16 md:pb-20">
+    <section ref={sectionRef} className="w-full px-5 md:px-20 pt-16 md:pt-20 pb-16 md:pb-20">
       <div className="max-w-[1440px] mx-auto flex flex-col items-center gap-10">
 
-        {/* Section header */}
         <FadeIn className="flex flex-col items-center gap-3 text-center">
           <span className="text-[11px] font-bold tracking-[0.18em] text-[#4d7c6f] uppercase">
             See it in action
@@ -154,9 +168,9 @@ export function DashboardPreview() {
           </p>
         </FadeIn>
 
-        {/* Mockup */}
-        <FadeIn className="w-full flex justify-center">
-          <div ref={mockupRef} className="w-full max-w-[1100px] overflow-x-auto rounded-xl border border-[#2a2a2a]">
+        {/* Mockup — no FadeIn, pin handles visibility */}
+        <div className="w-full flex justify-center">
+          <div className="w-full max-w-[1100px] overflow-x-auto rounded-xl border border-[#2a2a2a]">
             <div
               className="md:min-w-[700px] rounded-xl overflow-hidden"
               style={{ background: "#141414" }}
@@ -177,31 +191,15 @@ export function DashboardPreview() {
                     <Search size={11} color="#6b6b6b" />
                     <span className="text-xs text-[#6b6b6b]">Search items...</span>
                   </div>
-
-                  {/* Pulsing "Add item" button */}
-                  <motion.button
+                  <button
+                    ref={btnRef}
                     type="button"
                     tabIndex={-1}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold text-white"
                     style={{ backgroundColor: "#4d7c6f" }}
-                    animate={
-                      phase === "pulse-btn"
-                        ? {
-                            scale: [1, 1.18, 0.96, 1.04, 1],
-                            boxShadow: [
-                              "0 0 0px rgba(77,124,111,0)",
-                              "0 0 28px rgba(77,124,111,0.85)",
-                              "0 0 12px rgba(77,124,111,0.4)",
-                              "0 0 8px rgba(77,124,111,0.2)",
-                              "0 0 0px rgba(77,124,111,0)",
-                            ],
-                          }
-                        : { scale: 1, boxShadow: "0 0 0px rgba(77,124,111,0)" }
-                    }
-                    transition={{ duration: 0.55, times: [0, 0.35, 0.6, 0.8, 1] }}
                   >
                     + Add item
-                  </motion.button>
+                  </button>
                 </div>
               </div>
 
@@ -229,22 +227,21 @@ export function DashboardPreview() {
                 <div className="flex-1 p-5 flex flex-col gap-4">
                   {/* Stats row */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {stats.map((stat) => (
-                      <motion.div
+                    {stats.map((stat, i) => (
+                      <div
                         key={stat.label}
+                        ref={stat.flash ? flashCardRef : undefined}
                         className="p-3.5 rounded-lg border border-[#2a2a2a] flex flex-col gap-2"
-                        animate={
-                          stat.flash && phase === "counter-flash"
-                            ? { backgroundColor: ["rgba(77,124,111,0.3)", "rgba(26,26,26,1)"] }
-                            : { backgroundColor: "rgba(26,26,26,1)" }
-                        }
-                        transition={{ duration: 1.4 }}
+                        style={{ backgroundColor: "rgba(26,26,26,1)" }}
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex flex-col gap-1">
                             <span className="text-[11px] text-[#94a3b8]">{stat.label}</span>
                             <span className="font-mono text-[20px] font-bold leading-none" style={{ color: stat.valueColor }}>
-                              {stat.value}
+                              {i === 0
+                                ? <span ref={totalItemsRef}>{stat.value}</span>
+                                : stat.value
+                              }
                             </span>
                           </div>
                           <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: stat.iconBg }}>
@@ -252,7 +249,7 @@ export function DashboardPreview() {
                           </div>
                         </div>
                         <span className="text-[11px]" style={{ color: stat.trendColor }}>{stat.trend}</span>
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
 
@@ -289,55 +286,38 @@ export function DashboardPreview() {
                       );
                     })}
 
-                    {/* Animated new row */}
-                    <AnimatePresence>
-                      {showRow && (
-                        <motion.div
-                          key="new-row"
-                          className="overflow-hidden border-t border-[#2a2a2a]"
-                          initial={{ height: 0 }}
-                          animate={{ height: 40 }}
-                          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                    {/* New row — always in DOM, GSAP reveals via scroll */}
+                    <div
+                      ref={newRowRef}
+                      className="border-t border-[#2a2a2a]"
+                      style={{ height: 0, overflow: "hidden" }}
+                    >
+                      <div
+                        ref={newRowInnerRef}
+                        className="grid grid-cols-[1fr_auto_auto] md:grid-cols-[2fr_1.5fr_1fr_1.2fr_1fr] px-4 h-10 items-center"
+                        style={{ opacity: 0 }}
+                      >
+                        <span className="text-[12px] text-[#f0f0f0] truncate min-w-0 pr-2">{newItem.name}</span>
+                        <span className="hidden md:block font-mono text-[11px] text-[#a0a0a0]">{newItem.sku}</span>
+                        <span className="font-mono text-[12px] font-bold px-2 md:px-0" style={{ color: stockColor(newItem.stock) }}>
+                          {newItem.stock}
+                        </span>
+                        <span className="hidden md:block text-[12px] text-[#a0a0a0]">{newItem.warehouse}</span>
+                        <span
+                          className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-medium w-fit"
+                          style={{ color: s.color, background: s.bg }}
                         >
-                          <motion.div
-                            className="grid grid-cols-[1fr_auto_auto] md:grid-cols-[2fr_1.5fr_1fr_1.2fr_1fr] px-4 h-10 items-center"
-                            initial={{ opacity: 0, y: 10, backgroundColor: "rgba(77,124,111,0.38)" }}
-                            animate={{
-                              opacity: 1,
-                              y: 0,
-                              backgroundColor:
-                                phase === "add-row"
-                                  ? "rgba(77,124,111,0.38)"
-                                  : "rgba(77,124,111,0)",
-                            }}
-                            transition={{
-                              opacity:         { duration: 0.2 },
-                              y:               { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
-                              backgroundColor: { duration: 1.8 },
-                            }}
-                          >
-                            <span className="text-[12px] text-[#f0f0f0] truncate min-w-0 pr-2">{newItem.name}</span>
-                            <span className="hidden md:block font-mono text-[11px] text-[#a0a0a0]">{newItem.sku}</span>
-                            <span className="font-mono text-[12px] font-bold px-2 md:px-0" style={{ color: stockColor(newItem.stock) }}>
-                              {newItem.stock}
-                            </span>
-                            <span className="hidden md:block text-[12px] text-[#a0a0a0]">{newItem.warehouse}</span>
-                            <span
-                              className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-medium w-fit"
-                              style={{ color: s.color, background: s.bg }}
-                            >
-                              {s.label}
-                            </span>
-                          </motion.div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                          {s.label}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </FadeIn>
+        </div>
+
       </div>
     </section>
   );
