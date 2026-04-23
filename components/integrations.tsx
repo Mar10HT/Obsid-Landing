@@ -1,6 +1,6 @@
 import {
-  FileDown, Code2, QrCode, Mail, Table2, Webhook, Scan, Zap, FileSpreadsheet, MessageSquare,
-  ShieldCheck, KeyRound, Warehouse, ScrollText, FileText, Smartphone, Globe, SlidersHorizontal, WifiOff, Key,
+  FileDown, Code2, QrCode, Mail, FileSpreadsheet, Scan, FileText, Bell, CalendarClock, AlertTriangle,
+  ShieldCheck, Warehouse, ScrollText, Globe, Smartphone, Handshake, ClipboardList, ArrowRightLeft, Building2, ClipboardCheck,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { FadeIn } from "./fade-in";
@@ -8,29 +8,29 @@ import { FadeIn } from "./fade-in";
 type PillItem = { label: string; Icon: LucideIcon };
 
 const row1: PillItem[] = [
-  { label: "CSV Export",      Icon: FileDown        },
-  { label: "REST API",        Icon: Code2           },
-  { label: "QR Codes",        Icon: QrCode          },
-  { label: "Email Alerts",    Icon: Mail            },
-  { label: "Google Sheets",   Icon: Table2          },
-  { label: "Webhooks",        Icon: Webhook         },
-  { label: "Barcode Scanner", Icon: Scan            },
-  { label: "Zapier",          Icon: Zap             },
-  { label: "Excel Import",    Icon: FileSpreadsheet },
-  { label: "Slack",           Icon: MessageSquare   },
+  { label: "CSV Export",          Icon: FileDown        },
+  { label: "REST API",            Icon: Code2           },
+  { label: "QR Codes",            Icon: QrCode          },
+  { label: "Email Alerts",        Icon: Mail            },
+  { label: "Excel Import",        Icon: FileSpreadsheet },
+  { label: "Barcode Scanner",     Icon: Scan            },
+  { label: "PDF Reports",         Icon: FileText        },
+  { label: "Push Notifications",  Icon: Bell            },
+  { label: "Scheduled Reports",   Icon: CalendarClock   },
+  { label: "Low Stock Alerts",    Icon: AlertTriangle   },
 ];
 
 const row2: PillItem[] = [
-  { label: "Role-based Access", Icon: ShieldCheck       },
-  { label: "SSO / SAML",        Icon: KeyRound          },
-  { label: "Multi-warehouse",   Icon: Warehouse         },
-  { label: "Audit Trail",       Icon: ScrollText        },
-  { label: "PDF Reports",       Icon: FileText          },
-  { label: "Mobile-ready",      Icon: Smartphone        },
-  { label: "EN / ES",           Icon: Globe             },
-  { label: "Custom Fields",     Icon: SlidersHorizontal },
-  { label: "Offline Mode",      Icon: WifiOff           },
-  { label: "API Keys",          Icon: Key               },
+  { label: "Role-based Access", Icon: ShieldCheck     },
+  { label: "Multi-warehouse",   Icon: Warehouse       },
+  { label: "Audit Trail",       Icon: ScrollText      },
+  { label: "EN / ES",           Icon: Globe           },
+  { label: "Mobile app",        Icon: Smartphone      },
+  { label: "Loan Tracking",     Icon: Handshake       },
+  { label: "Stock Takes",       Icon: ClipboardList   },
+  { label: "Transfer Workflow", Icon: ArrowRightLeft  },
+  { label: "Multi-tenant",      Icon: Building2       },
+  { label: "Discharge Requests", Icon: ClipboardCheck },
 ];
 
 function Pill({ label, Icon }: PillItem) {
