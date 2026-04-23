@@ -36,12 +36,12 @@ export function TrustedBy() {
         {/* Right fade */}
         <div className="absolute right-0 top-0 bottom-0 w-24 z-10 pointer-events-none bg-gradient-to-l from-[#0a0a0a] to-transparent" />
 
-        {/* Track: duplicated set so -50% lands exactly back at start */}
-        <div className="marquee-track flex gap-8 w-max">
+        {/* Track: spacing applied via mr-8 per item so -50% lands exactly back at start */}
+        <div aria-hidden="true" className="marquee-track flex w-max">
           {[...INDUSTRIES, ...INDUSTRIES].map(({ icon: Icon, label }, i) => (
             <div
               key={`${label}-${i}`}
-              className="flex items-center gap-3 px-6 py-3 rounded-xl border border-[#1c1c1c] bg-[#111111] shrink-0 select-none"
+              className="flex items-center gap-3 px-6 py-3 mr-8 rounded-xl border border-[#1c1c1c] bg-[#111111] shrink-0 select-none"
             >
               <Icon size={18} className="text-[#4d7c6f] shrink-0" strokeWidth={1.5} />
               <span className="text-sm font-medium text-[#707070] whitespace-nowrap">

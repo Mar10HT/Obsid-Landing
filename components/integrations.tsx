@@ -5,9 +5,9 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { FadeIn } from "./fade-in";
 
-type Pill = { label: string; Icon: LucideIcon };
+type PillItem = { label: string; Icon: LucideIcon };
 
-const row1: Pill[] = [
+const row1: PillItem[] = [
   { label: "CSV Export",      Icon: FileDown        },
   { label: "REST API",        Icon: Code2           },
   { label: "QR Codes",        Icon: QrCode          },
@@ -20,7 +20,7 @@ const row1: Pill[] = [
   { label: "Slack",           Icon: MessageSquare   },
 ];
 
-const row2: Pill[] = [
+const row2: PillItem[] = [
   { label: "Role-based Access", Icon: ShieldCheck       },
   { label: "SSO / SAML",        Icon: KeyRound          },
   { label: "Multi-warehouse",   Icon: Warehouse         },
@@ -33,22 +33,25 @@ const row2: Pill[] = [
   { label: "API Keys",          Icon: Key               },
 ];
 
-function Pill({ label, Icon }: Pill) {
+function Pill({ label, Icon }: PillItem) {
   return (
-    <div className="flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-[#141414] border border-[#2a2a2a] text-[14px] text-[#a0a0a0] whitespace-nowrap shrink-0">
+    <div className="flex items-center gap-2.5 px-5 py-2.5 mr-3 rounded-full bg-[#141414] border border-[#2a2a2a] text-[14px] text-[#a0a0a0] whitespace-nowrap shrink-0">
       <Icon size={15} className="text-[#4d7c6f] shrink-0" />
       {label}
     </div>
   );
 }
 
-function MarqueeRow({ items, reverse }: { items: Pill[]; reverse?: boolean }) {
+function MarqueeRow({ items, reverse }: { items: PillItem[]; reverse?: boolean }) {
   const doubled = [...items, ...items];
   return (
     <div className="w-full overflow-hidden" style={{ maskImage: "linear-gradient(to right, transparent, black 210px, black calc(100% - 210px), transparent)", WebkitMaskImage: "linear-gradient(to right, transparent, black 210px, black calc(100% - 210px), transparent)" }}>
-      <div className={`flex gap-3 w-max ${reverse ? "marquee-row-reverse" : "marquee-row"}`}>
+      <div
+        aria-hidden="true"
+        className={`flex w-max ${reverse ? "marquee-row-reverse" : "marquee-row"}`}
+      >
         {doubled.map((item, i) => (
-          <Pill key={i} label={item.label} Icon={item.Icon} />
+          <Pill key={`${item.label}-${i}`} label={item.label} Icon={item.Icon} />
         ))}
       </div>
     </div>
