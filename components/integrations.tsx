@@ -43,14 +43,17 @@ function Pill({ label, Icon }: PillItem) {
 }
 
 function MarqueeRow({ items, reverse }: { items: PillItem[]; reverse?: boolean }) {
-  const doubled = [...items, ...items];
+  // 4 copies so viewport stays covered on wide screens even when a single
+  // set is narrower than the viewport. The -50% keyframe still produces a
+  // seamless loop because the first half equals the second half.
+  const looped = [...items, ...items, ...items, ...items];
   return (
     <div className="w-full overflow-hidden" style={{ maskImage: "linear-gradient(to right, transparent, black 210px, black calc(100% - 210px), transparent)", WebkitMaskImage: "linear-gradient(to right, transparent, black 210px, black calc(100% - 210px), transparent)" }}>
       <div
         aria-hidden="true"
         className={`flex w-max ${reverse ? "marquee-row-reverse" : "marquee-row"}`}
       >
-        {doubled.map((item, i) => (
+        {looped.map((item, i) => (
           <Pill key={`${item.label}-${i}`} label={item.label} Icon={item.Icon} />
         ))}
       </div>

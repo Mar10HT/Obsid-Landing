@@ -36,9 +36,10 @@ export function TrustedBy() {
         {/* Right fade */}
         <div className="absolute right-0 top-0 bottom-0 w-24 z-10 pointer-events-none bg-gradient-to-l from-[#0a0a0a] to-transparent" />
 
-        {/* Track: spacing applied via mr-8 per item so -50% lands exactly back at start */}
+        {/* Track: 4 copies keep the viewport covered on wide screens;
+            mr-8 per item makes -50% a seamless loop point. */}
         <div aria-hidden="true" className="marquee-track flex w-max">
-          {[...INDUSTRIES, ...INDUSTRIES].map(({ icon: Icon, label }, i) => (
+          {[...INDUSTRIES, ...INDUSTRIES, ...INDUSTRIES, ...INDUSTRIES].map(({ icon: Icon, label }, i) => (
             <div
               key={`${label}-${i}`}
               className="flex items-center gap-3 px-6 py-3 mr-8 rounded-xl border border-[#1c1c1c] bg-[#111111] shrink-0 select-none"
